@@ -1,0 +1,7 @@
+venv-indices/
+__pycache__/
+*.pyc
+*.ipynb_checkpoints/
+outputs/
+Data/
+*.qgz
