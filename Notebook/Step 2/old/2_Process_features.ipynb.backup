@@ -1,0 +1,388 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "0",
+   "metadata": {},
+   "source": [
+    "# Step 2: Main notebook"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "f108f7d3",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import geopandas as gpd\n",
+    "import pandas as pd\n",
+    "from functools import reduce\n",
+    "import osmnx as ox\n",
+    "from shapely.geometry import Point\n",
+    "from matplotlib import pyplot as plt\n",
+    "\n",
+    "import os\n",
+    "\n",
+    "from method_a_buffer import extract_buffer_feature\n",
+    "from method_b_catchment import extract_catchment_feature\n",
+    "from method_c_zonal import compute_zonal_stat, assign_max_buffer_value\n",
+    "from method_d_ratio import ratio_by_surface_type\n",
+    "from method_e_join import spatial_join_maxoverlap\n",
+    "\n",
+    "import geopandas as gpd\n",
+    "import folium\n",
+    "from folium import Choropleth, CircleMarker, GeoJson\n",
+    "import osmnx as ox\n",
+    "import branca.colormap as cm"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "2",
+   "metadata": {},
+   "source": [
+    "## Imports"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "3",
+   "metadata": {},
+   "source": [
+    "#### Import des segments"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "e3fafe11",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "operation_crs = \"EPSG:2056\"  # Swiss coordinate system\n",
+    "target_crs = \"EPSG:4326\"  # WGS84 coordinate system\n",
+    "\n",
+    "# #Attributes info\n",
+    "file_path = '../../Data/output/step-1'\n",
+    "attribut_path = '../../Data/input'\n",
+    "\n",
+    "if not os.path.exists('../../Data/output/step-2/gpkg_attributs'):\n",
+    "    os.makedirs('../../Data/output/step-2/gpkg_attributs')\n",
+    "if not os.path.exists('../../Data/output/step-2/parquet_attributs'):\n",
+    "    os.makedirs('../../Data/output/step-2/parquet_attributs')\n",
+    "save_path = '../../Data/output/step-2'\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "43cf9391",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Load segments GeoDataFrame (with 'segment_id')\n",
+    "print(\"Loading pedestrian segments...\")\n",
+    "# reLoad pedestrian segments\n",
+    "segmented_net = gpd.read_parquet(os.path.join(file_path, \"step1_pedestrian_segments.parquet\"))\n",
+    "segmented_net = segmented_net.to_crs(operation_crs)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "5",
+   "metadata": {},
+   "source": [
+    "#### Import du csv - méthode de traitement des attributs"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "7",
+   "metadata": {},
+   "source": [
+    "#### Import des attributs et sauvegarde en gpkg (à modifier pour chaque attribut)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "329f626d",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "attributs_info = pd.DataFrame(columns=['attribute', 'file_name', 'method', 'how', 'value_column', 'buffer_size'])\n",
+    "    \n",
+    "# Example data to fill the DataFrame\n",
+    "# You can modify this part to include the actual attributes you want to process\n",
+    "attributs_info = pd.DataFrame({\n",
+    "    'attribute': ['arbre', 'accident', 'toilette', 'vitesse', 'eau', 'rez_actif'],\n",
+    "    'file_name': ['SIPV_ICA_ARBRE_ISOLE-SHP/SIPV_ICA_ARBRE_ISOLE.shp', 'OTC_ACCIDENTS-SHP/OTC_ACCIDENTS.shp', ...\n",
+    "    'method': ['buffer', 'buffer', 'buffer', 'join', 'buffer', 'buffer'],\n",
+    "    'how' : ['count', 'sum', 'count', None, 'count', 'count'],  # 'how' can be 'count', 'mean', etc.\n",
+    "    'value_column': [None, 'PIETONS', None, 'TYPE_ZONE', None, None],  # Column to aggregate\n",
+    "    'buffer_size': [30, 50, 50, None, 100, 30]  # Example buffer size for method A\n",
+    "    })\n",
+    "attributs_info.to_csv(f\"{attribut_path}/attributs_info.csv\", index=False)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "ca9f9f93",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "8",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "\n",
+    "\n",
+    "# Add attributes later: too long to run\n",
+    "# 'ratio_trottoir' 'ratio' None 'OBJET' '100'\n",
+    "# \n",
+    "# \n",
+    "#Chargement de la couhe des accidents \n",
+    "accident_gdf  = gpd.read_file(f\"{attribut_path}/accident/OTC_ACCIDENTS-SHP/OTC_ACCIDENTS.shp\")\n",
+    "print('Couche accident chargée avec succès')\n",
+    "accident_gdf = accident_gdf.to_crs(2056)\n",
+    "accident_gdf.to_file(f\"{save_path}/gpkg_attributs/accident.gpkg\", driver='GPKG')\n",
+    "accident_gdf.to_parquet(f\"{save_path}/parquet_attributs/accident.parquet\")\n",
+    "\n",
+    "#Chargement de la couche des arbre\n",
+    "arbre_gdf = gpd.read_file(f\"{attribut_path}/arbre/SIPV_ICA_ARBRE_ISOLE-SHP/SIPV_ICA_ARBRE_ISOLE.shp\")\n",
+    "print('Couche arbre chargée avec succès')\n",
+    "arbre_gdf = arbre_gdf.to_crs(2056)\n",
+    "arbre_gdf.to_file(f\"{save_path}/gpkg_attributs/arbre.gpkg\", driver='GPKG')\n",
+    "arbre_gdf.to_parquet(f\"{save_path}/parquet_attributs/arbre.parquet\")\n",
+    "\n",
+    "#Chargement de la couche des toilettes\n",
+    "toilette_gdf = gpd.read_file(f\"{attribut_path}/toilette/VDG_WC_PUBLIC-SHP/VDG_WC_PUBLIC.shp\")\n",
+    "print('Couche toilette chargée avec succès')\n",
+    "toilette_gdf = toilette_gdf.to_crs(2056)\n",
+    "toilette_gdf.to_file(f\"{save_path}/gpkg_attributs/toilette.gpkg\", driver='GPKG')\n",
+    "toilette_gdf.to_parquet(f\"{save_path}/parquet_attributs/toilette.parquet\")\n",
+    "\n",
+    "\n",
+    "#chargement de la couche des cours d'eau\n",
+    "eau_gdf = gpd.read_file(f\"{attribut_path}/eau/LCE_GRAPHE_EAU-SHP/LCE_GRAPHE_EAU.shp\")\n",
+    "print('Couche eau chargée avec succès')\n",
+    "eau_gdf = eau_gdf.to_crs(2056)\n",
+    "eau_gdf = eau_gdf[\n",
+    "    eau_gdf[\"TYPE_SIEAU\"].isin([\"Cours principale\", \"Rive droite\", \"Rive gauche\"]) &\n",
+    "    (eau_gdf[\"ETAT\"] == \"A ciel ouvert\")\n",
+    "]\n",
+    "eau_gdf.to_file(f\"{save_path}/gpkg_attributs/eau.gpkg\", driver='GPKG')\n",
+    "eau_gdf.to_parquet(f\"{save_path}/parquet_attributs/eau.parquet\")\n",
+    "\n",
+    "#chargment de la couche objets divers\n",
+    "objets_divers_gdf = gpd.read_file(f\"{attribut_path}/objets_divers/CAD_OBJETDIVERS_POLY-SHP/CAD_OBJETDIVERS_POLY.shp\")\n",
+    "print('Couche objets divers chargée avec succès')\n",
+    "objets_divers_gdf = objets_divers_gdf.to_crs(2056)\n",
+    "objets_divers_gdf.to_file(f\"{save_path}/gpkg_attributs/objets_divers.gpkg\", driver='GPKG')\n",
+    "objets_divers_gdf.to_parquet(f\"{save_path}/parquet_attributs/objets_divers.parquet\")\n",
+    "\n",
+    "#chargement de la couche rez-actif\n",
+    "rez_actif_gdf = gpd.read_file(f\"{attribut_path}/rez_actif/REG_ENTREPRISE_ETABLISSEMENT-SHP\")\n",
+    "print('Couche rez-actif chargée avec succès')\n",
+    "rez_actif_gdf = rez_actif_gdf.to_crs(2056)\n",
+    "#Selection des établissements\n",
+    "keywords = ['détail', 'écoles', 'petits commerces', 'petits supermarchés', 'restaurants']\n",
+    "\n",
+    "# Filtrer par \"BRANCHE\": commerce de détail, écoles, petits commerces, petits supermarchés, restaurants(cafés, bars, etc.)\n",
+    "# Drop NaNs first to avoid errors\n",
+    "rez_actif_gdf = rez_actif_gdf[rez_actif_gdf['BRANCHE'].dropna().str.lower().apply(\n",
+    "    lambda val: any(kw in val for kw in keywords)\n",
+    ")]\n",
+    "rez_actif_gdf.to_file(f\"{save_path}/gpkg_attributs/rez_actif.gpkg\", driver='GPKG')\n",
+    "rez_actif_gdf.to_parquet(f\"{save_path}/parquet_attributs/rez_actif.parquet\")\n",
+    "\n",
+    "#Chargement donaime routier\n",
+    "domaine_routier_gdf = gpd.read_file(f\"{attribut_path}/domaine_routier/CAD_DOMAINE_ROUTIER-SHP/CAD_DOMAINE_ROUTIER.shp\")\n",
+    "print('Couche domaine routier chargée avec succès')\n",
+    "domaine_routier_gdf = domaine_routier_gdf.to_crs(2056)\n",
+    "domaine_routier_gdf.to_file(f\"{save_path}/gpkg_attributs/domaine_routier.gpkg\", driver='GPKG')\n",
+    "domaine_routier_gdf.to_parquet(f\"{save_path}/parquet_attributs/domaine_routier.parquet\")\n",
+    "\n",
+    "#Chargement de la couche des vitesse\n",
+    "vitesse_gdf = gpd.read_file(f\"{attribut_path}/vitesse/OTC_LIMITATIONS_VITESSE-SHP/OTC_LIMITATIONS_VITESSE.shp\")\n",
+    "print('Couche vitesse chargée avec succès')\n",
+    "vitesse_gdf = vitesse_gdf.to_crs(2056)\n",
+    "vitesse_gdf.to_file(f\"{save_path}/gpkg_attributs/vitesse.gpkg\", driver='GPKG')\n",
+    "vitesse_gdf.to_parquet(f\"{save_path}/parquet_attributs/vitesse.parquet\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "10",
+   "metadata": {},
+   "source": [
+    "## Traitement des attributs"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "6e215fde",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "print(\"WARNING: This step can take a long time !! more than 12mn for ratios_trottoir\")\n",
+    "#taking more than 10minutes to run ratios_trottoir treatment"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "232bf5aa",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# # Charger la table des attributs et méthodes\n",
+    "# attributs_info = pd.read_csv('../../Data/input/attributs_info.csv')\n",
+    "\n",
+    "# # Charger les segments\n",
+    "# segmented_net = gpd.read_file('../../Data/output/step-1/step1_pedestrian_segments.gpkg')\n",
+    "\n",
+    "# Garder uniquement les colonnes 'segment_id', 'vitesse', et 'geometry' dans segmented_net\n",
+    "segmented_net = segmented_net[['osmid', 'maxspeed', 'geometry', 'segment_id', 'length']].copy()\n",
+    "print('Boucle sur chaque attribut... peut prendre du temps (10-15mn)')\n",
+    "\n",
+    "# Boucle sur chaque attribut\n",
+    "for _, row in attributs_info.iterrows():\n",
+    "    attribute_name = row['attribute']\n",
+    "    method = row['method']\n",
+    "    how = row['how']\n",
+    "    value_column = row['value_column']\n",
+    "    buffer_size = row['buffer_size']\n",
+    "\n",
+    "    # Charger la couche attribut depuis gpd_attributs\n",
+    "    attribute_gdf = gpd.read_parquet(f\"../../Data/output/step-2/parquet_attributs/{attribute_name}.parquet\")\n",
+    "    attribute_gdf = attribute_gdf.to_crs(segmented_net.crs)\n",
+    "\n",
+    "    # Appliquer la méthode\n",
+    "    if method == \"buffer\":\n",
+    "        attribute_df = extract_buffer_feature(\n",
+    "            segmented_net,\n",
+    "            attribute_gdf,\n",
+    "            feature_name=attribute_name,\n",
+    "            buffer_radius=buffer_size,\n",
+    "            how=how,\n",
+    "            value_column=value_column\n",
+    "        )\n",
+    "        print(f\"Buffer feature extracted for {attribute_name} with method {method}\")\n",
+    "    elif method == \"catchment\":\n",
+    "        attribute_df = extract_catchment_feature(\n",
+    "            segments_gdf=segmented_net,\n",
+    "            feature_name=attribute_name,\n",
+    "            buffer_radius=buffer_size,\n",
+    "            points_gdf=attribute_gdf\n",
+    "        )\n",
+    "        print(f\"Catchment feature extracted for {attribute_name} with method {method}\")\n",
+    "    elif method == \"zonal\":\n",
+    "        attribute_df = compute_zonal_stat(\n",
+    "            segmented_net,\n",
+    "            attribute_gdf,\n",
+    "            buffer_radius=buffer_size,\n",
+    "            value_column=value_column,\n",
+    "            stat=how\n",
+    "        )\n",
+    "        print(f\"Zonal statistics computed for {attribute_name} with method {method}\")\n",
+    "\n",
+    "    elif method == \"ratio\":\n",
+    "        attribute_df = ratio_by_surface_type(\n",
+    "            segments_gdf=segmented_net,\n",
+    "            surfaces_gdf=attribute_gdf,\n",
+    "            buffer_radius=buffer_size,\n",
+    "            surface_type_col=value_column\n",
+    "        )\n",
+    "        print(f\"Ratio by surface type computed for {attribute_name} with method {method}\")\n",
+    "    \n",
+    "    elif method == \"join\":\n",
+    "        attribute_df = spatial_join_maxoverlap(\n",
+    "        segments_gdf=segmented_net,\n",
+    "        attribute_gdf=attribute_gdf,\n",
+    "        value_column=value_column,\n",
+    "        segment_id_col=\"segment_id\",\n",
+    "        feature_name=attribute_name\n",
+    "        )\n",
+    "            # Debug duplicates\n",
+    "        if attribute_df[attribute_df.duplicated('segment_id')].shape[0] > 0:\n",
+    "            print(\"\\nDEBUG: Found duplicate segment assignments\")\n",
+    "            dupes = attribute_df[attribute_df.duplicated('segment_id', keep=False)]\n",
+    "            print(f\"Number of segments with multiple zones: {len(dupes['segment_id'].unique())}\")\n",
+    "        \n",
+    "            # Keep only the first occurrence for each segment_id\n",
+    "            attribute_df = attribute_df.drop_duplicates('segment_id', keep='first')\n",
+    "            print(\"Dropped duplicates, keeping first occurrence\")\n",
+    "        print(f\"Spatial join computed for {attribute_name} with method {method}\") \n",
+    "    \n",
+    "    # Ajoute d'autres méthodes si besoin\n",
+    "\n",
+    "\n",
+    "    # Ajouter la colonne au GeoDataFrame principal\n",
+    "    segmented_net[f'{attribute_name}_{method}_{buffer_size}'] = attribute_df[attribute_name]\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "891db279",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Sauvegarder le GeoDataFrame mis à jour\n",
+    "segmented_net.to_csv(f\"{save_path}/step2_features.csv\", index=False)\n",
+    "# Sauvegarder le GeoDataFrame mis à jour en format GPKG\n",
+    "segmented_net.to_file(f\"{save_path}/step2_features.gpkg\", driver='GPKG')\n",
+    "segmented_net.to_parquet(f\"{save_path}/step2_features.parquet\", index=False)\n",
+    "                      "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "bd0638ab",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "pd.read_csv(f\"{save_path}/step2_features.csv\").head(15)  # Afficher les 5 premières lignes pour vérification"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "548f03d4",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "venv-indices",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.13.1"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
