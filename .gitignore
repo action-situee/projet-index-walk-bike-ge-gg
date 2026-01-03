@@ -7,3 +7,4 @@ Data/
 *.qgz
 **/__pycache__/
 **/.cache/
+*.json
