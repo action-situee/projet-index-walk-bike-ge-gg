@@ -5,3 +5,5 @@ __pycache__/
 outputs/
 Data/
 *.qgz
+**/__pycache__/
+**/.cache/
