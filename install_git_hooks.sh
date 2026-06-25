@@ -22,6 +22,66 @@ fi
 # Créer le répertoire hooks s'il n'existe pas
 mkdir -p .git/hooks
 
+# Installer pre-commit: nettoie les notebooks stagés puis les re-stage
+cat > .git/hooks/pre-commit <<'EOF'
+#!/bin/bash
+set -euo pipefail
+
+staged_notebooks=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.ipynb$' || true)
+
+if [ -z "$staged_notebooks" ]; then
+    exit 0
+fi
+
+echo "🧹 Nettoyage des notebooks stagés..."
+
+while IFS= read -r nb; do
+    [ -z "$nb" ] && continue
+    python3 clear_notebooks.py "$nb"
+    git add "$nb"
+done <<< "$staged_notebooks"
+
+echo "✅ Notebooks nettoyés et re-stagés"
+EOF
+
+chmod +x .git/hooks/pre-commit
+
+# Installer pre-push: vérifie qu'aucun notebook >100MB n'est poussé
+cat > .git/hooks/pre-push <<'EOF'
+#!/bin/bash
+set -euo pipefail
+
+limit_bytes=$((100 * 1024 * 1024))
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+    [ -z "$local_sha" ] && continue
+
+    if [ "$remote_sha" = "0000000000000000000000000000000000000000" ]; then
+        range="$local_sha"
+    else
+        range="$remote_sha..$local_sha"
+    fi
+
+    while IFS= read -r path; do
+        [ -z "$path" ] && continue
+        case "$path" in
+            *.ipynb)
+                size=$(git cat-file -s "$local_sha:$path" 2>/dev/null || echo 0)
+                if [ "$size" -gt "$limit_bytes" ]; then
+                    echo "❌ Push bloqué: $path dépasse 100MB ($size bytes)."
+                    echo "   Nettoie/réduis le notebook ou utilise Git LFS."
+                    exit 1
+                fi
+                ;;
+        esac
+    done < <(git diff-tree --no-commit-id --name-only -r "$range")
+done
+
+exit 0
+EOF
+
+chmod +x .git/hooks/pre-push
+
 echo "✅ Installation terminée !"
 echo ""
 echo "🔒 Hooks installés :"

@@ -56,11 +56,18 @@ def find_notebooks(root_dir="."):
     return notebooks
 
 def main():
-    """Main function to clear all notebook outputs."""
+    """Main function to clear notebook outputs."""
     print("🧹 Nettoyage des outputs des notebooks Jupyter...")
-    
-    # Find all notebooks
-    notebooks = find_notebooks()
+
+    # If file paths are provided, only process those notebooks.
+    args = sys.argv[1:]
+    if args:
+        notebooks = [
+            str(Path(path)) for path in args
+            if path.endswith(".ipynb") and Path(path).exists()
+        ]
+    else:
+        notebooks = find_notebooks()
     
     if not notebooks:
         print("Aucun notebook trouvé.")

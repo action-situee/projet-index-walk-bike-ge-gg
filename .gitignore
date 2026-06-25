@@ -5,6 +5,7 @@ __pycache__/
 *.ipynb_checkpoints/
 outputs/
 Data/
+Data_copie/
 *.qgz
 **/__pycache__/
 **/.cache/
