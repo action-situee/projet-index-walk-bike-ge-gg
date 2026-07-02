@@ -1,6 +1,14 @@
 # Methodologie des attributs issus d'OSM et du reseau
 
-Version de travail. Ce document explicite les choix methodologiques des couches issues d'OpenStreetMap ou des reseaux prepares dans les notebooks. Il sert de base pour documenter ensuite de maniere systematique l'ensemble des attributs de `Data/input/attributs/attributs_info_bike.xlsx` et `Data/input/attributs/attributs_info_walk.xlsx`.
+Ce document explicite les choix methodologiques des couches issues d'OpenStreetMap ou des reseaux prepares dans les notebooks du depot `projet-index-walk-bike-ge-gg`.
+
+Il complete le `README.md` en detaillant les attributs utilises pour les indices marche et velo. Il sert aussi de base pour controler de maniere systematique les fichiers de parametrage `Data/input/attributs/attributs_info_bike.xlsx` et `Data/input/attributs/attributs_info_walk.xlsx`.
+
+## Statut du document
+
+Ce document est une documentation de travail avancee, mais il n'est pas exhaustif. Il couvre surtout les couches issues d'OpenStreetMap et les couches derivees du reseau. Les attributs provenant d'autres sources locales ou opendata doivent encore etre documentes avec leur source, leur millesime, leur perimetre, leur traitement et leurs limites. [À COMPLÉTER]
+
+Les hypotheses de score, d'agregation, de buffer et de sens d'impact doivent etre relues avec les classeurs d'attributs et les notebooks avant toute diffusion publique d'un resultat.
 
 Sources locales utilisees :
 
@@ -9,7 +17,7 @@ Sources locales utilisees :
 - `Notebook/Step 0/0_2_Load_osm_features_walk.ipynb` : ancienne version marche, utilisee comme reference pour certaines couches pietonnes.
 - `Notebook/Step 1/1_1_Prepare_features.ipynb` : connectivite locale et couche `vitesse_all_edges`.
 - `Notebook/Step 2/feature_to_network.py` : logique d'agregation des attributs sur les segments.
-- `Notebook/Step 2/2_1_Filter_features_bike.ipynb` et `Notebook/Step 2/2_1_Filter_features_walk.ipynb` : filtres et scores avant agregration.
+- `Notebook/Step 2/2_1_Filter_features_bike.ipynb` et `Notebook/Step 2/2_1_Filter_features_walk.ipynb` : filtres et scores avant agregation.
 - `Data/input/attributs/attributs_info_bike.xlsx` et `Data/input/attributs/attributs_info_walk.xlsx` : parametrage aval des attributs.
 
 ## Perimetre

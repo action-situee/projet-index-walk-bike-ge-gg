@@ -1,59 +1,53 @@
-# 🔒 Sécurité des Notebooks Jupyter - Protection contre les données sensibles
+# Sécurité des notebooks Jupyter
 
 ## Vue d'ensemble
 
-Ce repository est équipé d'un système automatique de protection contre la publication accidentelle de données sensibles dans les notebooks Jupyter. Le système nettoie automatiquement tous les outputs, execution counts et métadonnées sensibles avant chaque commit.
+Ce dépôt est équipé d'un système de protection contre la publication accidentelle de données sensibles dans les notebooks Jupyter. Le système nettoie automatiquement les outputs, execution counts et métadonnées d'exécution avant chaque commit.
 
-## 🛡️ Protection automatique
+## Protection automatique
 
 ### Hooks Git installés
 
-- **pre-commit** : Nettoie automatiquement tous les notebooks avant chaque commit
-- **pre-push** : Vérifie qu'aucun contenu sensible n'est présent avant le push
+- `pre-commit` : nettoie automatiquement les notebooks stagés avant chaque commit.
+- `pre-push` : vérifie qu'aucun notebook trop volumineux n'est poussé.
 
 ### Ce qui est automatiquement nettoyé
 
-- ✅ **Outputs de cellules** : Tous les résultats d'exécution (graphiques, tableaux, texte)
-- ✅ **Execution counts** : Numéros d'exécution révélant l'ordre des opérations
-- ✅ **Métadonnées de version** : Informations spécifiques à l'environnement
-- ✅ **Métadonnées d'exécution** : Timestamps et informations de session
+- outputs de cellules ;
+- execution counts ;
+- métadonnées d'exécution ;
+- informations locales susceptibles de varier selon l'environnement.
 
-## 🚀 Installation (nouveaux collaborateurs)
+## Installation
 
 ```bash
-# Cloner le repository
-git clone https://github.com/action-situee/index-marchabilite-ge.git
-cd index-marchabilite-ge
+git clone https://github.com/action-situee/projet-index-walk-bike-ge-gg.git
+cd projet-index-walk-bike-ge-gg
 
-# Installer les hooks de sécurité
 ./install_git_hooks.sh
 ```
 
-## 📝 Utilisation quotidienne
+## Utilisation quotidienne
 
-### Workflow normal
 ```bash
-# Travailler normalement sur vos notebooks
 jupyter lab
 
-# Commiter comme d'habitude - nettoyage automatique !
 git add .
 git commit -m "Mon commit"
 git push
 ```
 
-## 🆘 Support
+## Support
 
 ### Problèmes courants
 
-**1. Hook ne fonctionne pas**
+Si un hook ne fonctionne pas :
+
 ```bash
-# Vérifier les permissions
 chmod +x .git/hooks/pre-commit
 chmod +x .git/hooks/pre-push
 
-# Réinstaller
 ./install_git_hooks.sh
 ```
 
-**🎯 Rappel important** : Ce système est votre première ligne de défense contre les fuites de données. Utilisez-le systématiquement !
+Ce système ne remplace pas un contrôle manuel. Avant de publier, vérifier aussi `git status --short`, `git diff --stat` et l'absence de fichiers issus de `Data/`.
