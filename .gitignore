@@ -1,7 +1,13 @@
 venv-indices/
+venv-cyclabilite/
+.DS_Store
 __pycache__/
 *.pyc
 *.ipynb_checkpoints/
 outputs/
 Data/
+Data_copie/
 *.qgz
+**/__pycache__/
+**/.cache/
+*.json
