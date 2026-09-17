@@ -246,7 +246,7 @@ def build_density_raster_v2(gdf_group, raster_height, raster_width, transform,
 
     Pour chaque user :
       1. Rasterise ses traces (comptage de passages par pixel)
-      2. Divise par n_days_GE (jours de présence dans le canton)
+      2. Divise par n_days_GG (jours de présence dans le canton)
       3. Applique un lissage gaussien
     Puis moyenne sur tous les users valides du groupe.
 
@@ -257,7 +257,7 @@ def build_density_raster_v2(gdf_group, raster_height, raster_width, transform,
     raster_width    : int          → largeur du raster en pixels
     transform       : Affine       → transformation géographique du raster
     canton_mask     : np.ndarray   → masque booléen du canton (True = dans le canton)
-    n_days_per_user : dict         → {user_id: n_days_GE}
+    n_days_per_user : dict         → {user_id: n_days_GG}
     sigma           : float        → sigma du lissage gaussien (défaut 1)
     verbose         : bool         → affiche le détail par user (défaut True)
     output_path     : str          → dossier d'export du raster (optionnel)
@@ -361,7 +361,7 @@ def plot_user_contribution(gdf_group, group_filters, group_labels,
                            group_col, title="User contribution by group",
                            show_lowess=True, lowess_frac=0.4):
     
-    #Scatter plot of n_days_GE vs n_legs per user for each group.
+    #Scatter plot of n_days_GG vs n_legs per user for each group.
     #Color encodes daily walking intensity (legs/day).
     #Includes a linear regression trend line with R² coefficient,
     #and optionally a LOWESS curve to visualize the actual shape.
@@ -406,15 +406,15 @@ def plot_user_contribution(gdf_group, group_filters, group_labels,
             .groupby("user_id_fors")
             .agg(
                 n_legs    = ("user_id_fors", "count"),
-                n_days_GE = ("n_days_GE", "first")
+                n_days_GG = ("n_days_GG", "first")
             )
             .reset_index()
         )
-        user_stats["legs_per_day"] = user_stats["n_legs"] / user_stats["n_days_GE"]
+        user_stats["legs_per_day"] = user_stats["n_legs"] / user_stats["n_days_GG"]
 
         median_legs_per_day = np.median(user_stats["legs_per_day"])  # ← nouveau
 
-        x = user_stats["n_days_GE"].values
+        x = user_stats["n_days_GG"].values
         y = user_stats["n_legs"].values
 
         sc = axes[i].scatter(x, y,
@@ -457,7 +457,7 @@ def plot_user_contribution(gdf_group, group_filters, group_labels,
              fontsize=14
          )
         axes[i].patch.set_alpha(0)
-        axes[i].set_xlabel("n_days_GE", fontsize=12)
+        axes[i].set_xlabel("n_days_GG", fontsize=12)
         axes[i].set_ylabel("n_legs", fontsize=12)
         axes[i].legend(fontsize=12)
         axes[i].tick_params(labelsize=12)
